@@ -1,6 +1,7 @@
 import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 
+
 //переносимо в notesController.js як функції getAllNotes та getNoteById відповідно
 export const getAllNotes = async (req, res) => {
   const notes = await Note.find();
