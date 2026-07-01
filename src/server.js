@@ -1,67 +1,70 @@
 import express from 'express';
 import cors from 'cors';
-import pino from 'pino-http';
 import 'dotenv/config';
+import { connectMongoDB } from './db/connectMongoDB.js';
+
+import notesRoutes from './routes/notesRoutes.js';
+
+import { logger } from './middleware/logger.js';
+import { notFoundHandler } from './middleware/notFoundHandler.js';
+import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 const PORT = process.env.PORT ?? 3000;
 
-app.use(express.json());
-app.use(cors());
-app.use(
-  pino({
-    level: 'info',
-    transport: {
-      target: 'pino-pretty',
-      options: {
-        colorize: true,
-        translateTime: 'HH:MM:ss',
-        ignore: 'pid,hostname',
-        messageFormat: '{req.method} {req.url} {res.statusCode} - {responseTime}ms',
-        hideObject: true,
-      },
-    },
-  }),
-);
+// Глобальні middleware
+app.use(logger); // 1. Логер першим — бачить усі запити. Фіксує сам факт того, що запит надійшов. Він записує в консоль час, метод (GET, POST) та URL запиту.
+app.use(express.json()); // 2. Парсинг (розбір) JSON-тіла вхідного запиту і перетворює його на звичайний JavaScript-об'єкт, доступний через req.body.
+app.use(cors()); // 3. Дозвіл для запитів з інших доменів. Дозволяє або забороняє іншим сайтам робити запити до вашого сервера.
+
 
 // Список усіх користувачів
-app.get('/notes', (req, res) => {
-  res.status(200).json({
-	"message": "Retrieved all notes"
-});
-});
+//app.get('/notes', (req, res) => {
+  //res.status(200).json({
+	//"message": "Retrieved all notes"
+//});});
 
 // Конкретний користувач за id
-app.get('/notes/:noteId', (req, res) => {
-  const { noteId } = req.params;
-  res.status(200).json({
-	"message": `Retrieved note with ID: ${noteId}`
-}
-);
-});
+//app.get('/notes/:noteId', (req, res) => {
+  //const { noteId } = req.params;
+  //res.status(200).json({
+	//"message": `Retrieved note with ID: ${noteId}`
+//});});
 
 
-app.get('/test-error', () => {
-  throw new Error('Simulated server error');
-});
+//перенесли в notesRouter.js з заміною app=>router
+app.use(notesRoutes);
+//app.get('/notes', async (req, res) => {
+  //const notes = await Note.find();
+  //res.status(200).json(notes);});
 
-// Middleware 404 (після всіх маршрутів)
-app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
-});
 
-// Middleware для обробки помилок
-app.use((err, req, res, next) => {
-  console.error(err);
+//app.get('/notes/:noteId', async (req, res) => {
+  //const { noteId } = req.params;
+  //const note = await Note.findById(noteId);
+  //if (!note) {
+    //return res.status(404).json({ message: 'Note not found' });}
+  //res.status(200).json(note);});
 
-  const isProd = process.env.NODE_ENV === "production";
 
-  res.status(500).json({
-    message: isProd
-      ? "Something went wrong. Please try again later."
-      : err.message,
-  });
-});
+//app.get('/test-error', () => {
+  //throw new Error('Simulated server error');
+//});
+
+// Логування часу
+//app.use((req, res, next) => {
+  //console.log(`Time:[${new Date().toLocaleString()}] ${req.method} ${req.url}`);
+  //next();});
+
+// Middleware 404 (після всіх маршрутів) перенесли в notFoundHandler.js
+// Замість старого коду передаю назву функції:
+app.use(notFoundHandler);
+
+// Middleware для обробки помилок перенесли в errorHandler.js
+app.use(errorHandler);
+
+// підключення до MongoDB
+await connectMongoDB();
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
