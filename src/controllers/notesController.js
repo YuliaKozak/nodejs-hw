@@ -1,11 +1,41 @@
 import { Note } from '../models/note.js';
 import createHttpError from 'http-errors';
 
-
 //переносимо в notesController.js як функції getAllNotes та getNoteById відповідно
 export const getAllNotes = async (req, res) => {
-  const notes = await Note.find();
-  res.status(200).json(notes);
+  const { page = 1, perPage = 10, tag, search } = req.query;
+  const skip = (page - 1) * perPage;
+
+const filter = {};
+
+if (tag) {
+  filter.tag = tag;
+}
+
+if (search) {
+  filter.$or = [
+    { title: { $regex: search, $options: 'i' } },
+    { content: { $regex: search, $options: 'i' } },
+  ];
+}
+
+// Виконуємо одразу два запити паралельно
+  const [totalNotes, notes] = await Promise.all([
+    Note.clone().countDocuments(filter),
+    Note.find(filter).skip(skip).limit(perPage),
+  ]);
+
+	// Обчислюємо загальну кількість «сторінок»
+  const totalPages = Math.ceil(totalNotes / perPage);
+
+
+  res.status(200).json({
+    page,
+    perPage,
+    totalNotes,
+    totalPages,
+    notes,
+  });
 };
 
 export const getNoteById = async (req, res) => {
@@ -41,7 +71,7 @@ export const updateNote = async (req, res) => {
     req.body,
     { returnDocument: "after" }, // повертаємо оновлений документ);
   );
-  
+
   if (!note) {
     throw createHttpError (404,'Note not found');
   }
