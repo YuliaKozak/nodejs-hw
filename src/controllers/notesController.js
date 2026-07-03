@@ -6,7 +6,7 @@ export const getAllNotes = async (req, res) => {
   const { page = 1, perPage = 10, tag, search } = req.query;
   const skip = (page - 1) * perPage;
 
-const filter = {};
+const filter = {userId: req.user._id};
 
 if (tag) {
   filter.tag = tag;
@@ -22,7 +22,7 @@ if (search) {
 // Виконуємо одразу два запити паралельно
   const [totalNotes, notes] = await Promise.all([
     Note.clone().countDocuments(filter),
-    Note.find({ userId: req.user._id }).skip(skip).limit(perPage),
+    Note.find(filter).skip(skip).limit(perPage),
   ]);
 
 
@@ -54,12 +54,12 @@ export const getNoteById = async (req, res) => {
 };
 
 export const createNote = async (req, res) => {
-  const notes = await Note.create({
+  const note = await Note.create({
     ...req.body,
     // Додаємо властивість userId
     userId: req.user._id,
   });
-  res.status(201).json(notes);
+  res.status(201).json(note);
 };
 
 export const deleteNote = async (req, res) => {

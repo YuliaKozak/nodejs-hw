@@ -8,7 +8,7 @@ import { authenticate } from "../middleware/authenticate.js";
 
 const router = Router();
 
-router.use("/students", authenticate);
+router.use("/notes", authenticate);
 //переносимо в notesController.js як функції getAllNotes та getNoteById відповідно
 router.get('/notes', celebrate(getAllNotesSchema), getAllNotes);
 
