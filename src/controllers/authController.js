@@ -1,5 +1,5 @@
 // src/controllers/authController.js
-
+import bcrypt from "bcrypt";
 import createHttpError from 'http-errors';
 import { User } from '../models/user.js';
 
@@ -10,7 +10,32 @@ export const registerUser = async (req, res) => {
     throw createHttpError(400, 'Email in use');
   }
 
-// Тут далі будемо додавати логіку створення користувача
-// Поки що відповідаємо порожнім об'єктом
-  res.status(201).json({});
+// Хешуємо пароль
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  // Створюємо користувача
+  const user = await User.create({
+    email,
+    password: hashedPassword,
+  });
+// Відправляємо дані користувача (без пароля) у відповіді
+  res.status(201).json(user);
+};
+
+
+export const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+
+	// Перевіряємо чи користувач з такою поштою існує
+  const user = await User.findOne({ email });
+  if (!user) {
+    throw createHttpError(401, 'Invalid credentials');
+  }
+
+	// Порівнюємо хеші паролів
+  const isValidPassword = await bcrypt.compare(password, user.password);
+  if (!isValidPassword) {
+    throw createHttpError(401, 'Invalid credentials');
+  }
+  res.status(200).json(user);
 };
