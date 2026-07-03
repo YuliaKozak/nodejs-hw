@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from "cookie-parser";
+
 import 'dotenv/config';
 import { errors } from "celebrate";
 import { connectMongoDB } from './db/connectMongoDB.js';
@@ -22,7 +24,7 @@ app.use(express.json({
 })); // 2. Парсинг (розбір) JSON-тіла вхідного запиту і перетворює його на звичайний JavaScript-об'єкт, доступний через req.body.
 app.use(cors()); // 3. Дозвіл для запитів з інших доменів. Дозволяє або забороняє іншим сайтам робити запити до вашого сервера.
 
-
+app.use(cookieParser());
 // Список усіх користувачів
 //app.get('/notes', (req, res) => {
   //res.status(200).json({
