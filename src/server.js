@@ -4,7 +4,7 @@ import 'dotenv/config';
 import { errors } from "celebrate";
 import { connectMongoDB } from './db/connectMongoDB.js';
 
-
+import authRoutes from './routes/authRoutes.js';
 import notesRoutes from './routes/notesRoutes.js';
 
 import { logger } from './middleware/logger.js';
@@ -38,6 +38,7 @@ app.use(cors()); // 3. Дозвіл для запитів з інших доме
 
 
 //перенесли в notesRouter.js з заміною app=>router
+app.use(authRoutes);
 app.use(notesRoutes);
 //app.get('/notes', async (req, res) => {
   //const notes = await Note.find();
