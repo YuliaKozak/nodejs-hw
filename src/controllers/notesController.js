@@ -22,8 +22,9 @@ if (search) {
 // Виконуємо одразу два запити паралельно
   const [totalNotes, notes] = await Promise.all([
     Note.clone().countDocuments(filter),
-    Note.find(filter).skip(skip).limit(perPage),
+    Note.find({ userId: req.user._id }).skip(skip).limit(perPage),
   ]);
+
 
 	// Обчислюємо загальну кількість «сторінок»
   const totalPages = Math.ceil(totalNotes / perPage);
@@ -40,7 +41,10 @@ if (search) {
 
 export const getNoteById = async (req, res) => {
   const { noteId } = req.params;
-  const note = await Note.findById(noteId);
+  const note = await Note.findOne({
+    _id: noteId,
+    userId: req.user._id,
+  });
 
   if (!note) {
     throw createHttpError (404,'Note not found');
@@ -50,13 +54,20 @@ export const getNoteById = async (req, res) => {
 };
 
 export const createNote = async (req, res) => {
-  const notes = await Note.create(req.body);
+  const notes = await Note.create({
+    ...req.body,
+    // Додаємо властивість userId
+    userId: req.user._id,
+  });
   res.status(201).json(notes);
 };
 
 export const deleteNote = async (req, res) => {
   const { noteId } = req.params;
-  const note = await Note.findOneAndDelete({ _id: noteId });
+  const note = await Note.findOneAndDelete({
+    _id: noteId,
+    userId: req.user._id,
+  });
 
   if (!note) {
     throw createHttpError (404,'Note not found');
@@ -67,7 +78,10 @@ export const deleteNote = async (req, res) => {
 
 export const updateNote = async (req, res) => {
   const { noteId } = req.params;
-  const note = await Note.findOneAndUpdate({ _id: noteId },// Шукаємо по id
+  const note = await Note.findOneAndUpdate({
+    _id: noteId,
+    userId: req.user._id,
+  },// Шукаємо по id
     req.body,
     { returnDocument: "after" }, // повертаємо оновлений документ);
   );
