@@ -40,6 +40,7 @@
     "express": "^5.2.1",
     "fill-range": "^7.1.1",
     "glob-parent": "^5.1.2",
+    "handlebars": "^4.7.9",
     "has-flag": "^3.0.0",
     "http-errors": "^2.0.1",
     "ignore-by-default": "^1.0.1",
