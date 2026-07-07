@@ -13,6 +13,8 @@ import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
+import userRoutes from './routes/userRoutes.js';
+
 const app = express();
 const PORT = process.env.PORT ?? 3000;
 
@@ -42,6 +44,8 @@ app.use(cookieParser());
 //перенесли в notesRouter.js з заміною app=>router
 app.use(authRoutes);
 app.use(notesRoutes);
+
+app.use(userRoutes);
 //app.get('/notes', async (req, res) => {
   //const notes = await Note.find();
   //res.status(200).json(notes);});
